@@ -7,7 +7,7 @@
 
 ---
 
-## 📥 安装
+## [O] 安装
 
 ### 方式一：AstrBot 插件市场（推荐）
 1. 打开 AstrBot 管理面板 → **插件管理**
@@ -65,7 +65,7 @@ astrbot plug install https://github.com/YuNaitang/astrbot_plugin_memosnotes
 | `/mn update <ID> <内容>` | 更新内容 | `/mn update #abc123 新内容` |
 | `/mn delete <ID>` | 删除 | `/mn delete #abc123` |
 
-> 💡 ID 输入时支持 `#` 前缀，`/mn get #abc` 和 `/mn get abc` 都可以。
+> [I] ID 输入时支持 `#` 前缀，`/mn get #abc` 和 `/mn get abc` 都可以。
 
 ### 置顶与归档
 
@@ -107,7 +107,7 @@ AI 会自动以 **Markdown + Front Matter** 格式保存：
 今天去了海边……
 ```
 
-### 📚 保存知识
+### [K] 保存知识
 ```
 你: "记住，服务器 SSH 端口改成 2222 了"
 → AI 调用 save_knowledge
@@ -147,9 +147,9 @@ https://notes.yunaitang.top/m/abc123
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `enable_auth` | ✅ 开关 | off | 启用后**只允许白名单用户**使用插件 |
+| `enable_auth` | [OK] 开关 | off | 启用后**只允许白名单用户**使用插件 |
 | `allowed_origins` | ✏️ 文本 | `*` | 允许的 `unified_msg_origin` 列表（逗号/换行分隔），格式：`platform:type:session` |
-| `allow_delete` | ✅ 开关 | on | 关闭后 `delete/archive/pin/unpin/restore` 全部不可用，LLM 也不会看到这些功能 |
+| `allow_delete` | [OK] 开关 | on | 关闭后 `delete/archive/pin/unpin/restore` 全部不可用，LLM 也不会看到这些功能 |
 
 **白名单 origin 示例**：
 ```
@@ -159,7 +159,7 @@ aiocqhttp:group:123456789   ← QQ 群
 
 ---
 
-## 📦 存储格式
+## [B] 存储格式
 
 AI 写入的内容采用 **Markdown + Front Matter** 格式：
 
@@ -198,7 +198,7 @@ AI 写入的内容采用 **Markdown + Front Matter** 格式：
 
 ---
 
-## 📅 版本历史
+## [D] 版本历史
 
 | 版本 | 内容 |
 |------|------|

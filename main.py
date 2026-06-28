@@ -82,7 +82,7 @@ class MemosNotesPlugin(Star):
         """解析子命令并分发"""
         if self.client is None:
             yield event.plain_result(
-                "❌ MemosNotes 未配置，请在 WebUI 中设置 memos_url 和 memos_token。"
+                "[X] MemosNotes 未配置，请在 WebUI 中设置 memos_url 和 memos_token。"
             )
             return
 
@@ -97,7 +97,7 @@ class MemosNotesPlugin(Star):
 
         if not rest:
             yield event.plain_result(
-                "📝 MemosNotes\n"
+                "[M] MemosNotes\n"
                 "用法: /memos <子命令> [参数]\n"
                 "子命令: create, list, get, update, delete,\n"
                 "        pin, unpin, archive, restore, help\n"
@@ -141,7 +141,7 @@ class MemosNotesPlugin(Star):
                 yield result
         else:
             yield event.plain_result(
-                f"❌ 未知子命令: {subcmd}。使用 /memos help 查看帮助。"
+                f"[X] 未知子命令: {subcmd}。使用 /memos help 查看帮助。"
             )
 
     # ------------------------------------------------------------------
@@ -150,7 +150,7 @@ class MemosNotesPlugin(Star):
 
     async def _help(self, event: AstrMessageEvent):
         yield event.plain_result(
-            "📝 MemosNotes 帮助\n"
+            "[M] MemosNotes 帮助\n"
             "──────────────\n"
             "/memos create [-p|--public|--protected] <内容>  创建备忘录（默认私有）\n"
             "/memos list [数量]    列出最近备忘录\n"
@@ -164,7 +164,7 @@ class MemosNotesPlugin(Star):
             "/memos help           显示本帮助\n"
             "快捷别名: /mn\n"
             "──────────────\n"
-            "💡 LLM 也可以:\n"
+            "[I] LLM 也可以:\n"
             "   · 写日记（Markdown + Front Matter 格式）\n"
             "   · 记知识（Markdown + Front Matter 格式 + #标签）\n"
             "   · 查知识：说「查一下」「我有记录过吗」"
@@ -172,7 +172,7 @@ class MemosNotesPlugin(Star):
 
     async def _cmd_create(self, event: AstrMessageEvent, args: str):
         if not args:
-            yield event.plain_result("❌ 用法: /memos create [-p | --public | --protected] <内容>")
+            yield event.plain_result("[X] 用法: /memos create [-p | --public | --protected] <内容>")
             return
 
         visibility = "PRIVATE"
@@ -188,19 +188,19 @@ class MemosNotesPlugin(Star):
             content = content[len("--protected"):].strip()
 
         if not content:
-            yield event.plain_result("❌ 内容不能为空。")
+            yield event.plain_result("[X] 内容不能为空。")
             return
 
         memo = await self.client.create_memo(content=content, visibility=visibility)
         if memo is None:
-            yield event.plain_result("❌ 创建失败，请检查配置和网络。")
+            yield event.plain_result("[X] 创建失败，请检查配置和网络。")
             return
 
         memo_name = memo.get("name", "")
         memo_id = memo_name.split("/")[-1] if "/" in memo_name else memo.get("id", "?")
         tags = memo.get("tags", [])
         tag_str = f" #{' #'.join(tags)}" if tags else ""
-        yield event.plain_result(f"✅ 备忘录 #{memo_id} 已创建（{visibility}）。{tag_str}")
+        yield event.plain_result(f"[OK] 备忘录 #{memo_id} 已创建（{visibility}）。{tag_str}")
 
     async def _cmd_list(self, event: AstrMessageEvent, args: str):
         page_size = 10
@@ -212,15 +212,15 @@ class MemosNotesPlugin(Star):
 
         result = await self.client.list_memos(page_size=page_size)
         if result is None:
-            yield event.plain_result("❌ 查询失败，请检查配置和网络。")
+            yield event.plain_result("[X] 查询失败，请检查配置和网络。")
             return
 
         memos = result.get("memos", [])
         if not memos:
-            yield event.plain_result("📭 暂无备忘录。")
+            yield event.plain_result("[E] 暂无备忘录。")
             return
 
-        lines = [f"📋 最近 {len(memos)} 条备忘录:"]
+        lines = [f"[L] 最近 {len(memos)} 条备忘录:"]
         for m in memos:
             memo_name = m.get("name", "")
             memo_id = memo_name.split("/")[-1] if "/" in memo_name else m.get("id", "?")
@@ -230,7 +230,7 @@ class MemosNotesPlugin(Star):
                 snippet += "……"
             tags = m.get("tags", [])
             tag_str = f"  #{' #'.join(tags)}" if tags else ""
-            pinned = "📌 " if m.get("pinned") else ""
+            pinned = "[P] " if m.get("pinned") else ""
             lines.append(f"{pinned}#{memo_id}{tag_str}")
             lines.append(f"  {snippet}")
             lines.append("")  # 空行分隔
@@ -238,17 +238,17 @@ class MemosNotesPlugin(Star):
 
     async def _cmd_get(self, event: AstrMessageEvent, args: str):
         if not args:
-            yield event.plain_result("❌ 用法: /memos get <备忘录ID>")
+            yield event.plain_result("[X] 用法: /memos get <备忘录ID>")
             return
 
         memo_id = args.split()[0].strip().lstrip("#")
         if not memo_id:
-            yield event.plain_result("❌ ID 不能为空。")
+            yield event.plain_result("[X] ID 不能为空。")
             return
 
         memo = await self.client.get_memo(memo_id)
         if memo is None:
-            yield event.plain_result(f"❌ 未找到备忘录 #{memo_id}。")
+            yield event.plain_result(f"[X] 未找到备忘录 #{memo_id}。")
             return
 
         # ---- 构建元数据 ----
@@ -262,7 +262,7 @@ class MemosNotesPlugin(Star):
         creator = memo.get("creator", "").replace("users/", "")
         tags = memo.get("tags", [])
         title = memo.get("snippet", "") or content[:60] if content else ""
-        pinned = "📌 " if memo.get("pinned") else ""
+        pinned = "[P] " if memo.get("pinned") else ""
         tag_str = " #".join(tags) if tags else "（无标签）"
 
         front_matter = (
@@ -276,9 +276,9 @@ class MemosNotesPlugin(Star):
         attachments = memo.get("attachments", [])
         if attachments:
             attach_lines = [f"  - {a.get('name', '未命名')} ({a.get('type', '未知')})" for a in attachments]
-            attachment_text = "📎 附件\n" + "\n".join(attach_lines)
+            attachment_text = "[C] 附件\n" + "\n".join(attach_lines)
         else:
-            attachment_text = "📎 无附件"
+            attachment_text = "[C] 无附件"
 
         # ---- 按平台选择发送方式 ----
         platform = event.get_platform_name()
@@ -287,9 +287,9 @@ class MemosNotesPlugin(Star):
 
         if can_forward:
             nodes = Nodes(nodes=[
-                Node(content=[Plain(text=front_matter)], name="📋 MemosNotes", uin="0"),
-                Node(content=[Plain(text=content or "（空）")], name="📝 内容", uin="0"),
-                Node(content=[Plain(text=attachment_text)], name="📎 附件", uin="0"),
+                Node(content=[Plain(text=front_matter)], name="[L] MemosNotes", uin="0"),
+                Node(content=[Plain(text=content or "（空）")], name="[M] 内容", uin="0"),
+                Node(content=[Plain(text=attachment_text)], name="[C] 附件", uin="0"),
             ])
             yield event.chain_result([nodes])
         else:
@@ -304,47 +304,47 @@ class MemosNotesPlugin(Star):
 
     async def _cmd_update(self, event: AstrMessageEvent, args: str):
         if not args:
-            yield event.plain_result("❌ 用法: /memos update <ID> <新内容>")
+            yield event.plain_result("[X] 用法: /memos update <ID> <新内容>")
             return
 
         parts = args.split(maxsplit=1)
         if len(parts) < 2:
-            yield event.plain_result("❌ 用法: /memos update <ID> <新内容>")
+            yield event.plain_result("[X] 用法: /memos update <ID> <新内容>")
             return
 
         memo_id = parts[0].strip().lstrip("#")
         if not memo_id:
-            yield event.plain_result("❌ ID 不能为空。")
+            yield event.plain_result("[X] ID 不能为空。")
             return
 
         new_content = parts[1].strip()
         if not new_content:
-            yield event.plain_result("❌ 内容不能为空。")
+            yield event.plain_result("[X] 内容不能为空。")
             return
 
         memo = await self.client.update_memo(memo_id, content=new_content)
         if memo is None:
-            yield event.plain_result(f"❌ 更新备忘录 #{memo_id} 失败。")
+            yield event.plain_result(f"[X] 更新备忘录 #{memo_id} 失败。")
             return
 
-        yield event.plain_result(f"✅ 备忘录 #{memo_id} 已更新。")
+        yield event.plain_result(f"[OK] 备忘录 #{memo_id} 已更新。")
 
     async def _cmd_delete(self, event: AstrMessageEvent, args: str):
         if not args:
-            yield event.plain_result("❌ 用法: /memos delete <备忘录ID>")
+            yield event.plain_result("[X] 用法: /memos delete <备忘录ID>")
             return
 
         memo_id = args.split()[0].strip().lstrip("#")
         if not memo_id:
-            yield event.plain_result("❌ ID 不能为空。")
+            yield event.plain_result("[X] ID 不能为空。")
             return
 
         success = await self.client.delete_memo(memo_id)
         if not success:
-            yield event.plain_result(f"❌ 删除备忘录 #{memo_id} 失败。")
+            yield event.plain_result(f"[X] 删除备忘录 #{memo_id} 失败。")
             return
 
-        yield event.plain_result(f"✅ 备忘录 #{memo_id} 已删除。")
+        yield event.plain_result(f"[OK] 备忘录 #{memo_id} 已删除。")
 
     # ------------------------------------------------------------------
     # 置顶 / 归档
@@ -352,59 +352,59 @@ class MemosNotesPlugin(Star):
 
     async def _cmd_pin(self, event: AstrMessageEvent, args: str):
         if not args:
-            yield event.plain_result("❌ 用法: /memos pin <备忘录ID>")
+            yield event.plain_result("[X] 用法: /memos pin <备忘录ID>")
             return
         memo_id = args.split()[0].strip().lstrip("#")
         if not memo_id:
-            yield event.plain_result("❌ ID 不能为空。")
+            yield event.plain_result("[X] ID 不能为空。")
             return
         memo = await self.client.update_memo(memo_id, pinned=True)
         if memo is None:
-            yield event.plain_result(f"❌ 置顶失败。")
+            yield event.plain_result(f"[X] 置顶失败。")
             return
-        yield event.plain_result(f"📌 备忘录 #{memo_id} 已置顶。")
+        yield event.plain_result(f"[P] 备忘录 #{memo_id} 已置顶。")
 
     async def _cmd_unpin(self, event: AstrMessageEvent, args: str):
         if not args:
-            yield event.plain_result("❌ 用法: /memos unpin <备忘录ID>")
+            yield event.plain_result("[X] 用法: /memos unpin <备忘录ID>")
             return
         memo_id = args.split()[0].strip().lstrip("#")
         if not memo_id:
-            yield event.plain_result("❌ ID 不能为空。")
+            yield event.plain_result("[X] ID 不能为空。")
             return
         memo = await self.client.update_memo(memo_id, pinned=False)
         if memo is None:
-            yield event.plain_result(f"❌ 取消置顶失败。")
+            yield event.plain_result(f"[X] 取消置顶失败。")
             return
-        yield event.plain_result(f"📌 备忘录 #{memo_id} 已取消置顶。")
+        yield event.plain_result(f"[P] 备忘录 #{memo_id} 已取消置顶。")
 
     async def _cmd_archive(self, event: AstrMessageEvent, args: str):
         if not args:
-            yield event.plain_result("❌ 用法: /memos archive <备忘录ID>")
+            yield event.plain_result("[X] 用法: /memos archive <备忘录ID>")
             return
         memo_id = args.split()[0].strip().lstrip("#")
         if not memo_id:
-            yield event.plain_result("❌ ID 不能为空。")
+            yield event.plain_result("[X] ID 不能为空。")
             return
         memo = await self.client.update_memo(memo_id, state="ARCHIVED")
         if memo is None:
-            yield event.plain_result(f"❌ 归档失败。")
+            yield event.plain_result(f"[X] 归档失败。")
             return
-        yield event.plain_result(f"📦 备忘录 #{memo_id} 已归档。")
+        yield event.plain_result(f"[B] 备忘录 #{memo_id} 已归档。")
 
     async def _cmd_restore(self, event: AstrMessageEvent, args: str):
         if not args:
-            yield event.plain_result("❌ 用法: /memos restore <备忘录ID>")
+            yield event.plain_result("[X] 用法: /memos restore <备忘录ID>")
             return
         memo_id = args.split()[0].strip().lstrip("#")
         if not memo_id:
-            yield event.plain_result("❌ ID 不能为空。")
+            yield event.plain_result("[X] ID 不能为空。")
             return
         memo = await self.client.update_memo(memo_id, state="NORMAL")
         if memo is None:
-            yield event.plain_result(f"❌ 恢复失败。")
+            yield event.plain_result(f"[X] 恢复失败。")
             return
-        yield event.plain_result(f"📦 备忘录 #{memo_id} 已恢复。")
+        yield event.plain_result(f"[B] 备忘录 #{memo_id} 已恢复。")
 
     # ------------------------------------------------------------------
     # LLM 工具 — 自然语言写日记
@@ -420,7 +420,7 @@ class MemosNotesPlugin(Star):
             visibility(string): 可见性，PRIVATE（私有）/ PROTECTED（登录可见）/ PUBLIC（公开）。默认 PRIVATE。
         """
         if self.client is None:
-            yield event.plain_result("❌ MemosNotes 未配置。")
+            yield event.plain_result("[X] MemosNotes 未配置。")
             return
 
         vis = visibility.upper()
@@ -436,7 +436,7 @@ class MemosNotesPlugin(Star):
 
         memo = await self.client.create_memo(content=full_content, visibility=vis)
         if memo is None:
-            yield event.plain_result("❌ 保存失败。")
+            yield event.plain_result("[X] 保存失败。")
             return
 
         memo_name = memo.get("name", "")
@@ -444,7 +444,7 @@ class MemosNotesPlugin(Star):
         tags = memo.get("tags", [])
         tag_str = f" #{' #'.join(tags)}" if tags else ""
         logger.info(f"write_diary: 已保存 #{memo_id}{tag_str}")
-        yield event.plain_result(f"✅ 日记已保存 #{memo_id}。{tag_str}")
+        yield event.plain_result(f"[OK] 日记已保存 #{memo_id}。{tag_str}")
 
     # ------------------------------------------------------------------
     # LLM 工具 — 知识库读写
@@ -460,7 +460,7 @@ class MemosNotesPlugin(Star):
             visibility(string): 可见性，PRIVATE（私有）/ PROTECTED（登录可见）/ PUBLIC（公开）。默认 PRIVATE。
         """
         if self.client is None:
-            yield event.plain_result("❌ MemosNotes 未配置。")
+            yield event.plain_result("[X] MemosNotes 未配置。")
             return
 
         vis = visibility.upper()
@@ -476,7 +476,7 @@ class MemosNotesPlugin(Star):
 
         memo = await self.client.create_memo(content=full_content, visibility=vis)
         if memo is None:
-            yield event.plain_result("❌ 知识保存失败。")
+            yield event.plain_result("[X] 知识保存失败。")
             return
 
         memo_name = memo.get("name", "")
@@ -484,7 +484,7 @@ class MemosNotesPlugin(Star):
         tags_out = memo.get("tags", [])
         tag_str = f" #{' #'.join(tags_out)}" if tags_out else ""
         logger.info(f"save_knowledge: 已保存 #{memo_id}{tag_str}")
-        yield event.plain_result(f"✅ 知识已保存 #{memo_id}。{tag_str}")
+        yield event.plain_result(f"[OK] 知识已保存 #{memo_id}。{tag_str}")
 
     @filter.llm_tool(name="search_memos")
     async def search_memos(self, event: AstrMessageEvent, query: str, limit: str = "10"):
@@ -495,7 +495,7 @@ class MemosNotesPlugin(Star):
             limit(string): 返回结果数量上限，最大 50，默认 10。
         """
         if self.client is None:
-            yield event.plain_result("❌ MemosNotes 未配置。")
+            yield event.plain_result("[X] MemosNotes 未配置。")
             return
 
         try:
@@ -505,15 +505,15 @@ class MemosNotesPlugin(Star):
 
         result = await self.client.list_memos(page_size=page_size)
         if result is None:
-            yield event.plain_result("❌ 查询失败。")
+            yield event.plain_result("[X] 查询失败。")
             return
 
         memos = result.get("memos", [])
         if not memos:
-            yield event.plain_result("📭 知识库中暂无内容。")
+            yield event.plain_result("[E] 知识库中暂无内容。")
             return
 
-        lines = ["📚 以下是 Memos 知识库中找到的相关内容："]
+        lines = ["[K] 以下是 Memos 知识库中找到的相关内容："]
         for m in memos:
             memo_name = m.get("name", "")
             memo_id = memo_name.split("/")[-1] if "/" in memo_name else m.get("id", "?")
@@ -523,12 +523,12 @@ class MemosNotesPlugin(Star):
             created = m.get("createTime", "")
             tags = m.get("tags", [])
             tag_str = f" #{' #'.join(tags)}" if tags else ""
-            pinned = "📌 " if m.get("pinned") else ""
+            pinned = "[P] " if m.get("pinned") else ""
 
             lines.append("")
             lines.append(f"━━━ {pinned}#{memo_id}{tag_str} ━━━")
             if created:
-                lines.append(f"📅 {created}")
+                lines.append(f"[D] {created}")
             lines.append(snippet)
 
         yield event.plain_result("\n".join(lines))
